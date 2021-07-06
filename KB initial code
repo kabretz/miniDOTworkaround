@@ -1,0 +1,97 @@
+---
+title: "oxy"
+author: "Kristen Bretz"
+date: "April 12, 2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(anytime)
+library(plyr)
+```
+```{r}
+test <- read.delim("C:/Users/krist/Desktop/PovertyCreek/2021apr12 data transfer/20210404 paul 150m beast o2/7450-154941/2020-06-21 152400Z.txt")
+```
+
+, path = "C:/Users/krist/Desktop/PovertyCreek/2021apr12 data transfer/20210404 paul 150m beast o2/7450-154941/"
+GET EM ALL IN
+```{r}
+##450m Beast
+#temp = list.files(pattern = "*.txt")
+#oxfiles450m = lapply(temp, read.delim, header = TRUE, sep = ",", skip = 2) #list with all the oxygen files, jun20 to april21 
+
+#OX450ALL <- do.call(rbind, oxfiles450m)
+#names(OX450ALL) <- c("time.weirdsecs", "batt.v", "temp.c", "DO.mgl", "q")
+
+
+##150m BEast
+#YOU'LL NEED TO SET A NEW WD!!!
+setwd("C:/Users/krist/Desktop/PovertyCreek/2021apr12 data transfer/20210404 paul 150m beast o2/7450-154941")
+temp = list.files(pattern = "*.txt")
+oxfiles150m = lapply(temp, read.delim, header = TRUE, sep = ",", skip = 2) #list with all the oxygen files, jun20 to april21 
+
+OX150ALL <- do.call(rbind, oxfiles150m)
+names(OX150ALL) <- c("time.weirdsecs", "batt.v", "temp.c", "DO.mgl", "q")
+
+##write csvs so you don't have to go through that^ again
+write.csv(OX150ALL, "C:/Users/krist/OneDrive/Desktop/PovertyCreek/ox150all.csv") 
+#write.csv(OX450ALL, "C:/Users/krist/OneDrive/Desktop/PovertyCreek/ox450all.csv") 
+
+
+```
+
+things that did NOT work
+ox150m_junapr <- oxfiles150m[[1]]
+for (i in 2:length(oxfiles150m)) ox150m_junapr <- merge(ox150m_junapr, oxfiles150m[[i]], by=c("Time..sec.", "BV..Volts.", "T..deg.C.", "DO..mg.l.", "Q..."))
+#for (i in 2:length(oxfiles150m)) ox150m_junapr <- rbind(ox150m_junapr, oxfiles150m[[i]][-(1:2)])
+
+test plot with list generated df
+```{r}
+ggplot() +
+  geom_point(data = OX150ALL, aes(time.weirdsecs, DO.mgl)) +
+  geom_line(data = OX150ALL, aes(time.weirdsecs, temp.c))
+  
+```
+
+
+read in csvs for repeatability
+```{r}
+OX150 <- read_csv("C:/Users/krist/OneDrive/Desktop/PovertyCreek/ox150all.csv")
+OX450 <- read_csv("C:/Users/krist/OneDrive/Desktop/PovertyCreek/ox450all.csv")
+```
+
+plot both miniDOTS for their full deployments
+```{r}
+ggplot() +
+  geom_point(data = OX150, aes(time.weirdsecs, DO.mgl), color = "chocolate3") +
+  geom_line(data = OX150, aes(time.weirdsecs, temp.c), color = "chocolate3") +
+  geom_point(data = OX450, aes(time.weirdsecs, DO.mgl), color = "goldenrod3") +
+  geom_line(data = OX450, aes(time.weirdsecs, temp.c), color = "goldenrod3") 
+  
+```
+
+trim for Jun-Dec window
+```{r}
+OX150 <- mutate(OX150, datetime = anytime(time.weirdsecs))
+OX450 <- mutate(OX450, datetime = anytime(time.weirdsecs))
+
+OX150t <- filter(OX150, datetime <= "2020-12-15 12:08:00")
+OX450t <- filter(OX450, datetime <= "2020-12-15 12:08:00")
+
+
+```
+
+```{r}
+ggplot() +
+  geom_point(data = OX150t, aes(datetime, DO.mgl), color = "chocolate3") +
+  geom_line(data = OX150t, aes(datetime, temp.c), color = "chocolate3") +
+  geom_point(data = OX450t, aes(datetime, DO.mgl), color = "goldenrod3") +
+  geom_line(data = OX450t, aes(datetime, temp.c), color = "goldenrod3") 
+ggsave("beast_oxy.png")
+##the high temp at late Jun early July when 1st spot dried out, so I moved it up and you can see signal go back to water fluc
+```
+
+
+
