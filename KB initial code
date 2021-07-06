@@ -42,10 +42,6 @@ write.csv(OX150ALL, "C:/Users/krist/OneDrive/Desktop/PovertyCreek/ox150all.csv")
 
 ```
 
-things that did NOT work
-ox150m_junapr <- oxfiles150m[[1]]
-for (i in 2:length(oxfiles150m)) ox150m_junapr <- merge(ox150m_junapr, oxfiles150m[[i]], by=c("Time..sec.", "BV..Volts.", "T..deg.C.", "DO..mg.l.", "Q..."))
-#for (i in 2:length(oxfiles150m)) ox150m_junapr <- rbind(ox150m_junapr, oxfiles150m[[i]][-(1:2)])
 
 test plot with list generated df
 ```{r}
